@@ -19,11 +19,22 @@ bl_info = {
     "category": "3D view"
 }
 
+def print(data):
+    for window in bpy.context.window_manager.windows:
+        screen = window.screen
+        for area in screen.areas:
+            if area.type == 'CONSOLE':
+                override = {'window': window, 'screen': screen, 'area': area}
+                bpy.ops.console.scrollback_append(override, text=str(data), type="OUTPUT")
+
+
 def cube_to_empty():
     x, y, z = bpy.context.active_object.scale
     empty_x, empty_y, empty_z = bpy.context.active_object.dimensions
     loc_empty_x, loc_empty_y, loc_empty_z = bpy.context.active_object.location
     
+#    bpy.ops.object.hide_render
+#    bpy.ops.object.hide_viewport
     bpy.ops.object.delete(use_global=False)
     bpy.ops.object.empty_add(type='CUBE', align='WORLD', location=(loc_empty_x, loc_empty_y, loc_empty_z), scale=(1, 1, 1))
     bpy.ops.transform.resize(value=(x, y, z))
@@ -95,10 +106,10 @@ class MESH_OT_setup_cube(bpy.types.Operator):
 
     
     def execute(self, context):
-        global empty_x, empty_y, empty_z, loc_empty_x, loc_empty_y, loc_empty_z
+        global empty_x, empty_y, empty_z, loc_empty_x, loc_empty_y, loc_empty_z, type
         empty_x, empty_y, empty_z, loc_empty_x, loc_empty_y, loc_empty_z = cube_to_empty()
-        type = True
-        panel(type)
+        print(type)
+        panel()
         
         return {'FINISHED'}
 
@@ -109,10 +120,9 @@ class MESH_OT_setup_cube_pie(bpy.types.Operator):
 
     
     def execute(self, context):
-        global empty_x, empty_y, empty_z, loc_empty_x, loc_empty_y, loc_empty_z
+        global empty_x, empty_y, empty_z, loc_empty_x, loc_empty_y, loc_empty_z, type
         empty_x, empty_y, empty_z, loc_empty_x, loc_empty_y, loc_empty_z = cube_to_empty()
         bpy.ops.wm.call_menu_pie(name="light_pie")
-        type = True
         
         return {'FINISHED'}
 
@@ -146,15 +156,20 @@ class light_pie(Menu):
         
         pie.operator("mesh.window_light")
         pie.operator("mesh.basic_light")
-        pie.operator("mesh.ei")
 
 addon_keymaps = []
 
-def panel(type):
-    if type == True:
+def panel():
+    global type
+    if type == False:
+        print("hoi")
         bpy.utils.register_class(light_panel_full)
-        type == False
-
+        type = True
+        print(type)
+    elif type == True:
+        print("lol")
+           
+    
 
 class light_panel(bpy.types.Panel):
     """Creates a Panel in the scene context of the properties editor"""
@@ -173,7 +188,9 @@ class light_panel(bpy.types.Panel):
         row = layout.row()
         row.scale_y = 3.0
         row.operator("mesh.setup_cube")
-        
+
+#class initlightpie
+#        
 
 class light_panel_full(bpy.types.Panel):
     """Creates a Panel in the scene context of the properties editor"""
@@ -230,7 +247,6 @@ def unregister():
     bpy.utils.unregister_class(light_panel_full)
 
 
+
 if __name__ == "__main__":
     register()
-
-bpy.ops.wm.call_menu_pie(name="light_panel")
